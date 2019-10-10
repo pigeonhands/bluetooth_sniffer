@@ -92,7 +92,7 @@ static void radio_configure() {
 	NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_Pos4dBm << RADIO_TXPOWER_TXPOWER_Pos);
 	NRF_RADIO->MODE = (RADIO_MODE_MODE_Ble_1Mbit << RADIO_MODE_MODE_Pos);
 	
-	set_radio_to_channel(ADV_CHANNEL_3);
+	set_radio_to_channel(ADV_CHANNEL_2);
 	
 	/*
 	 *	0x555555 is default for BLE adverts
@@ -121,8 +121,7 @@ static void radio_configure() {
 	 *
 	 **/
 	NRF_RADIO->TXADDRESS	= 0; // transmit on logical address 0
-    NRF_RADIO->RXADDRESSES	=	(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR1_Pos);
-								//|(RADIO_RXADDRESSES_ADDR1_Enabled << RADIO_RXADDRESSES_ADDR1_Pos) ;  // a bit mask, listen only to logical address 0
+    NRF_RADIO->RXADDRESSES	=	(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR0_Pos);
 	
 	/*
 	 * Structure of the BLE packet to look for
@@ -190,8 +189,10 @@ void RADIO_IRQHandler(void) {
 		ctx.msg.len = ctx.msg.pdu.header.len + sizeof(ctx.msg.pdu.header) + sizeof(ctx.msg.header);
 		ctx.msg.header.message_type = MESSAGE_TYPE_RADIO;
 		ctx.msg.header.rssi = NRF_RADIO->RSSISAMPLE;
-		ctx.msg.header.crc_ok = (NRF_RADIO->CRCSTATUS & RADIO_CRCSTATUS_CRCSTATUS_Msk) ==
+		
+		uint8_t crc_ok = (NRF_RADIO->CRCSTATUS & RADIO_CRCSTATUS_CRCSTATUS_Msk) ==
                  (RADIO_CRCSTATUS_CRCSTATUS_CRCOk << RADIO_CRCSTATUS_CRCSTATUS_Pos);
+		ctx.msg.header.crc_ok = crc_ok;
 		
 
 		if (ctx.on_packet) {
