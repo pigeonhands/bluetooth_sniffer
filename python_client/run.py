@@ -1,4 +1,4 @@
 import app
 
 if __name__ == "__main__":
-    app.run("COM3")
+    app.run("COM8")

@@ -58,8 +58,6 @@
     <ClInclude Include="pdu.h" />
     <ClInclude Include="uart.h" />
     <None Include="nrf5x.props" />
-    <ClCompile Include="$(BSP_ROOT)\nRF5x\modules\nrfx\mdk\system_nrf52.c" />
-    <ClCompile Include="$(BSP_ROOT)\nRF5x\modules\nrfx\mdk\gcc_startup_nrf52.S" />
     <ClCompile Include="$(BSP_ROOT)\nRF5x\integration\nrfx\legacy\nrf_drv_power.c" />
     <ClCompile Include="$(BSP_ROOT)\nRF5x\integration\nrfx\legacy\nrf_drv_rng.c" />
     <ClCompile Include="$(BSP_ROOT)\nRF5x\components\libraries\fds\fds.c" />
@@ -307,5 +305,7 @@
     <ClCompile Include="$(BSP_ROOT)\nRF5x\components\drivers_nrf\radio_config\radio_config.c" />
     <ClCompile Include="$(BSP_ROOT)\nRF5x\components\libraries\strerror\nrf_strerror.c" />
     <ClInclude Include="$(BSP_ROOT)\nRF5x\components\libraries\strerror\nrf_strerror.h" />
+    <ClCompile Include="$(BSP_ROOT)\nRF5x\modules\nrfx\mdk\system_nrf52.c" />
+    <ClCompile Include="$(BSP_ROOT)\nRF5x\modules\nrfx\mdk\gcc_startup_nrf52.S" />
   </ItemGroup>
 </Project>

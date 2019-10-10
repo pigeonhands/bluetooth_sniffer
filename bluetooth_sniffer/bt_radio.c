@@ -15,6 +15,12 @@ static struct {
 	bt_radio_on_pdu_packet_f on_packet;
 }ctx; 
 
+typedef enum {
+	ADV_CHANNEL_1 = 37,
+	ADV_CHANNEL_2 = 38,
+	ADV_CHANNEL_3 = 39,
+}adv_channels_e;
+
 void bt_radio_on_packet(bt_radio_on_pdu_packet_f cb, void *context) {
 	ctx.context = context;
 	ctx.on_packet = cb;
@@ -65,12 +71,28 @@ static uint8_t channel_to_freq(int channel) {
 	}
 }
 
+static uint8_t adv_channel_to_freq(adv_channels_e ch) {
+	switch (ch) {
+	case ADV_CHANNEL_1:
+		return 02;
+	case ADV_CHANNEL_2:
+		return 26;
+	case ADV_CHANNEL_3:
+		return 80;
+	}
+}
+
+static void set_radio_to_channel(adv_channels_e ch) {
+	NRF_RADIO->FREQUENCY = adv_channel_to_freq(ch);
+	NRF_RADIO->DATAWHITEIV = (uint32_t)ch;
+}
+
 static void radio_configure() {
 	
 	NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_Pos4dBm << RADIO_TXPOWER_TXPOWER_Pos);
 	NRF_RADIO->MODE = (RADIO_MODE_MODE_Ble_1Mbit << RADIO_MODE_MODE_Pos);
 	
-	NRF_RADIO->FREQUENCY = channel_to_freq(37);
+	set_radio_to_channel(ADV_CHANNEL_3);
 	
 	/*
 	 *	0x555555 is default for BLE adverts
@@ -82,6 +104,9 @@ static void radio_configure() {
 	NRF_RADIO->CRCINIT = 0x555555;	/* Initial value of CRC */
 	NRF_RADIO->CRCPOLY = 0x00065B;	/* CRC polynomial function */
 	
+	NRF_RADIO->CRCCNF  = (RADIO_CRCCNF_LEN_Three << RADIO_CRCCNF_LEN_Pos) |
+	                     (RADIO_CRCCNF_SKIPADDR_Skip << RADIO_CRCCNF_SKIPADDR_Pos); /* Skip Address when computing CRC */
+	
 	/*
 	 * logical address 'short form'?
 	 * expands to logical addresses 0-7
@@ -89,15 +114,15 @@ static void radio_configure() {
 	 * 
 	 *	Essentualy the mac address to send/recieve on.
 	 **/
-	NRF_RADIO->PREFIX0	= (0x8E89BED6 >> 24) & RADIO_PREFIX0_AP0_Msk;
-	NRF_RADIO->BASE0	= 0x8E89BED6 & RADIO_BASE0_BASE0_Msk;
+	NRF_RADIO->PREFIX0	=	(0x8E89BED6 >> 24) & RADIO_PREFIX0_AP0_Msk;
+	NRF_RADIO->BASE0	=	(0x8E89BED6 << 8)  & RADIO_BASE0_BASE0_Msk;
 	
 	/*
 	 *
 	 **/
 	NRF_RADIO->TXADDRESS	= 0; // transmit on logical address 0
-    NRF_RADIO->RXADDRESSES	=	//(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR1_Pos)| 
-								(RADIO_RXADDRESSES_ADDR1_Enabled << RADIO_RXADDRESSES_ADDR1_Pos) ;  // a bit mask, listen only to logical address 0
+    NRF_RADIO->RXADDRESSES	=	(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR1_Pos);
+								//|(RADIO_RXADDRESSES_ADDR1_Enabled << RADIO_RXADDRESSES_ADDR1_Pos) ;  // a bit mask, listen only to logical address 0
 	
 	/*
 	 * Structure of the BLE packet to look for
@@ -123,8 +148,7 @@ static void radio_configure() {
 		 (((1UL) << RADIO_PCNF1_WHITEEN_Pos) & RADIO_PCNF1_WHITEEN_Msk)							/* Enable packet whitening */
 	 );
 	
-	NRF_RADIO->CRCCNF  = (RADIO_CRCCNF_LEN_Three << RADIO_CRCCNF_LEN_Pos) |
-	                     (RADIO_CRCCNF_SKIPADDR_Skip << RADIO_CRCCNF_SKIPADDR_Pos); /* Skip Address when computing CRC */
+	
 	
 	
 }
@@ -166,6 +190,10 @@ void RADIO_IRQHandler(void) {
 		ctx.msg.len = ctx.msg.pdu.header.len + sizeof(ctx.msg.pdu.header) + sizeof(ctx.msg.header);
 		ctx.msg.header.message_type = MESSAGE_TYPE_RADIO;
 		ctx.msg.header.rssi = NRF_RADIO->RSSISAMPLE;
+		ctx.msg.header.crc_ok = (NRF_RADIO->CRCSTATUS & RADIO_CRCSTATUS_CRCSTATUS_Msk) ==
+                 (RADIO_CRCSTATUS_CRCSTATUS_CRCOk << RADIO_CRCSTATUS_CRCSTATUS_Pos);
+		
+
 		if (ctx.on_packet) {
 			ctx.on_packet(&ctx.msg, ctx.context);
 		}

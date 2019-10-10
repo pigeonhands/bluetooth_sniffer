@@ -9,6 +9,7 @@ typedef struct {
 	struct{
 		uint8_t message_type;
 		uint8_t rssi;
+		uint8_t crc_ok;
 	}header;
 	
 	ble_pdu_packet_t pdu;

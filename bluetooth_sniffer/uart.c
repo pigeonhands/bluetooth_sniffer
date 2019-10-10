@@ -1,13 +1,14 @@
 #include "uart.h"
 #include  "error_check.h"
 #include "nrf_log.h"
-#include "circle_bufer.h"
 
 static nrfx_uart_t uart = NRFX_UART_INSTANCE(0);
 static bool tx_in_progress = false;
 
-static void flush_messages();
+//static void flush_messages();
 static bool tx_enabled = false;
+
+static uint8_t tx_buffer[500];
 
 static void _event_handler(nrfx_uart_event_t const * p_event, void * p_context) {
 	
@@ -19,12 +20,12 @@ static void _event_handler(nrfx_uart_event_t const * p_event, void * p_context) 
 			 * handling the queued up writes.
 			 **/
 			tx_in_progress = false;
-			flush_messages();
+			//flush_messages();
 		}break;
 	case NRFX_UART_EVT_RX_DONE: {
 			NRF_LOG_INFO("Uart recieved %i bytes.", p_event->data.rxtx.bytes);
 				tx_enabled = true;
-			flush_messages();
+			//flush_messages();
 		}break;
 	case NRFX_UART_EVT_ERROR: {
 			NRF_LOG_ERROR("Uart error: %i", p_event->type);
@@ -33,9 +34,7 @@ static void _event_handler(nrfx_uart_event_t const * p_event, void * p_context) 
 	
 }
 
-void uart_init(nrfx_uart_config_t *config) {
-	circle_buffer_init();
-	
+void uart_init(nrfx_uart_config_t *config) {	
 	uint32_t err = nrfx_uart_init(&uart, config, _event_handler);
 	ERR_CHECK(err);
 	nrfx_uart_rx_enable(&uart);
@@ -49,25 +48,11 @@ void uart_read(uint8_t * rx_buffer, uint16_t bytes_to_read) {
 	ERR_CHECK(err);
 }
 
-static void flush_messages() {
+void uart_write(uint8_t *data, uint16_t len) {
 	if (tx_in_progress || !tx_enabled) {
 		return;
 	}
-
-	if (circle_buffer_len() > 0) {
-		tx_in_progress = true;
-		static uint8_t message_buffer[500];
-		uint16_t msg_len = circle_buffer_read(message_buffer);
-		uint32_t err = nrfx_uart_tx(&uart, message_buffer, msg_len);
-	}
-	
-}
-
-
-void uart_write(uint8_t *data, uint16_t len) {
-	if (!tx_enabled) {
-		return;
-	}
-	circle_buffer_write(data, len);
-	flush_messages();
+	tx_in_progress = true;
+	memcpy(tx_buffer, data, len);
+	nrfx_uart_tx(&uart, tx_buffer, len);
 }

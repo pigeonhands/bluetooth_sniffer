@@ -59,7 +59,8 @@ class PduAdvIndirected:
         #    self.name = str(adv_name_seg[2:], encoding='utf8')
 
     def addr_hex(self):
-        return "".join(format(x, 'x') for x in self.address)
+        return ":".join('%02x'%x for x in self.address)
+
     def __repr__(self):
         return "<adv ind> ({}) {} {}".format( self.addr_hex(), self.rssi, self.name)
 
