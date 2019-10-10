@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29025.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bluetooth_sniffer", "bluetooth_sniffer\bluetooth_sniffer.vcxproj", "{8B195840-8909-4C5B-9FEE-F5A7ADC7DCD3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|VisualGDB = Debug|VisualGDB
+		Release|VisualGDB = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B195840-8909-4C5B-9FEE-F5A7ADC7DCD3}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{8B195840-8909-4C5B-9FEE-F5A7ADC7DCD3}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{8B195840-8909-4C5B-9FEE-F5A7ADC7DCD3}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{8B195840-8909-4C5B-9FEE-F5A7ADC7DCD3}.Release|VisualGDB.Build.0 = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {40AD474F-9384-43BB-9475-2F5F0EE0CAEB}
+	EndGlobalSection
+EndGlobal
