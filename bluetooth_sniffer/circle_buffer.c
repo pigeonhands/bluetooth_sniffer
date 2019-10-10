@@ -50,7 +50,10 @@ uint16_t circle_buffer_read(uint8_t* out_data) {
 		ctx.read_index = 0;
 		uint16_t bytes_left = read_bytes - next_data->len;
 		if (bytes_left) {
-			memcpy(&out_data[read_bytes], ctx.buffer, bytes_left);
+			if (out_data) {
+				memcpy(&out_data[read_bytes], ctx.buffer, bytes_left);
+			}
+			
 			ctx.read_index += bytes_left;
 		}
 	}

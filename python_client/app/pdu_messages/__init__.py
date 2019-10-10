@@ -21,8 +21,6 @@ PDU_TYPE_DICT = {
 }
 
 
-
-
 def get_message(data):
     pdu_type = data[0]
     if pdu_type in PDU_TYPE_DICT:
