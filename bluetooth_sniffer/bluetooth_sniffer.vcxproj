@@ -54,6 +54,7 @@
     <ClCompile Include="uart.c" />
     <ClInclude Include="circle_bufer.h" />
     <ClInclude Include="error_check.h" />
+    <ClInclude Include="message_type.h" />
     <ClInclude Include="pdu.h" />
     <ClInclude Include="uart.h" />
     <None Include="nrf5x.props" />

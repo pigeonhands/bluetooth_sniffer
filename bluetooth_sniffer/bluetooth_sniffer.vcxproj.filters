@@ -67,6 +67,9 @@
     <Filter Include="Header files\ble">
       <UniqueIdentifier>{fb5442f1-3aba-427e-9439-49ccc2a6fb7f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header files\coms">
+      <UniqueIdentifier>{222274a7-1296-4285-ba96-771e59608db0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="nrf5x.props">
@@ -849,6 +852,9 @@
     </ClInclude>
     <ClInclude Include="circle_bufer.h">
       <Filter>Header files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="message_type.h">
+      <Filter>Header files\coms</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

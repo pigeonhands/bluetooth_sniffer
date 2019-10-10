@@ -5,11 +5,12 @@
 
 
 /*	Refrences 
+ *	https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52840PSv10.pdf
  *	https://cdn.sparkfun.com/datasheets/Wireless/Bluetooth/nRF52832_PS_v1.0.pdf
  *	https://github.com/bluekitchen/raccoon
  **/
 static struct {
-	ble_pdu_packet_t packet_buffer;
+	bt_radio_message msg;
 	void *context;
 	bt_radio_on_pdu_packet_f on_packet;
 }ctx; 
@@ -40,6 +41,8 @@ static void radio_clock_init() {
 }
 
 void bt_radio_read_packet() {
+	NRF_RADIO->PACKETPTR = (uint32_t)&ctx.msg.pdu;
+	
 	if (NRF_RADIO->STATE == 0) {NRF_RADIO->EVENTS_READY = 0;
 		NRF_RADIO->EVENTS_END = 0;
 		NRF_RADIO->TASKS_RXEN = 1U;
@@ -63,28 +66,55 @@ static uint8_t channel_to_freq(int channel) {
 }
 
 static void radio_configure() {
-	NRF_RADIO->PACKETPTR = (uint32_t)&ctx.packet_buffer;
+	
 	NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_Pos4dBm << RADIO_TXPOWER_TXPOWER_Pos);
 	NRF_RADIO->MODE = (RADIO_MODE_MODE_Ble_1Mbit << RADIO_MODE_MODE_Pos);
 	
 	NRF_RADIO->FREQUENCY = channel_to_freq(37);
 	
-	NRF_RADIO->CRCINIT = 0x555555;                                                  /* Initial value of CRC */
-	NRF_RADIO->CRCPOLY = 0x00065B;                                                  /* CRC polynomial function */
+	/*
+	 *	0x555555 is default for BLE adverts
+	 *	
+	 *	CRCPOLY are the values 
+	 *	used in the crc function 
+	 *	(0x06 and 0x5B)
+	 **/
+	NRF_RADIO->CRCINIT = 0x555555;	/* Initial value of CRC */
+	NRF_RADIO->CRCPOLY = 0x00065B;	/* CRC polynomial function */
 	
+	/*
+	 * logical address 'short form'?
+	 * expands to logical addresses 0-7
+	 * used in TXADDRESS/RXADDRESSES etc.
+	 * 
+	 *	Essentualy the mac address to send/recieve on.
+	 **/
 	NRF_RADIO->PREFIX0	= (0x8E89BED6 >> 24) & RADIO_PREFIX0_AP0_Msk;
 	NRF_RADIO->BASE0	= 0x8E89BED6 & RADIO_BASE0_BASE0_Msk;
 	
+	/*
+	 *
+	 **/
 	NRF_RADIO->TXADDRESS	= 0; // transmit on logical address 0
-    NRF_RADIO->RXADDRESSES	=	(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR1_Pos)| 
+    NRF_RADIO->RXADDRESSES	=	//(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR1_Pos)| 
 								(RADIO_RXADDRESSES_ADDR1_Enabled << RADIO_RXADDRESSES_ADDR1_Pos) ;  // a bit mask, listen only to logical address 0
 	
+	/*
+	 * Structure of the BLE packet to look for
+	 *	1 byte of metadata
+	 *	1 byte length
+	 **/
 	NRF_RADIO->PCNF0 = (
 			(((1UL) << RADIO_PCNF0_S0LEN_Pos) & RADIO_PCNF0_S0LEN_Msk) |  /* Length of S0 field in bytes 0-1.    */
 			(((0UL) << RADIO_PCNF0_S1LEN_Pos) & RADIO_PCNF0_S1LEN_Msk) |  /* Length of S1 field in bits 0-8.     */
 			(((8UL) << RADIO_PCNF0_LFLEN_Pos) & RADIO_PCNF0_LFLEN_Msk)    /* Length of length field in bits 0-8. */
 	);
 	
+	/*
+	 * How to atcualy read the 
+	 * ble packet once we find it.
+	 *
+	 **/
 	NRF_RADIO->PCNF1 = (
 		 (((250UL) << RADIO_PCNF1_MAXLEN_Pos) & RADIO_PCNF1_MAXLEN_Msk)   |                     /* Maximum length of payload in bytes [0-255] */
 		 (((0UL) << RADIO_PCNF1_STATLEN_Pos) & RADIO_PCNF1_STATLEN_Msk)   |						/* Expand the payload with N bytes in addition to LENGTH [0-255] */
@@ -133,8 +163,11 @@ void RADIO_IRQHandler(void) {
 	
 	if (NRF_RADIO->EVENTS_END) {
 		NRF_RADIO->EVENTS_END = 0U;
+		ctx.msg.len = ctx.msg.pdu.header.len + sizeof(ctx.msg.pdu.header) + sizeof(ctx.msg.header);
+		ctx.msg.header.message_type = MESSAGE_TYPE_RADIO;
+		ctx.msg.header.rssi = NRF_RADIO->RSSISAMPLE;
 		if (ctx.on_packet) {
-			ctx.on_packet(&ctx.packet_buffer, ctx.context);
+			ctx.on_packet(&ctx.msg, ctx.context);
 		}
 	}
 }

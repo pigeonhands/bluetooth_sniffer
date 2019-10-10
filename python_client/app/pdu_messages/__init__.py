@@ -22,8 +22,9 @@ PDU_TYPE_DICT = {
 
 
 def get_message(data):
-    pdu_type = data[0]
+    pdu_header = data[0]
+    pdu_type = (pdu_header >> 12) & 0x0F
     if pdu_type in PDU_TYPE_DICT:
-        return PDU_TYPE_DICT[pdu_type](data[1:])
+        return PDU_TYPE_DICT[pdu_type](data[2:])
     else:
         return PduUnknown.PduUnknown(pdu_type)

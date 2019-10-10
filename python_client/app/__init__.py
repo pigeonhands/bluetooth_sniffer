@@ -1,18 +1,21 @@
 import serial
-import app.pdu_messages
+from app.sniffer import Sniffer
+import app.network_message
 
-def process_packet(data):
-    message = app.pdu_messages.get_message(data)
-    print(message)
+MESSAGE_HANDLERS = {
+    1: app.network_message.handle
+}
+
+def process_message(data):
+    msg_type = data[0]
+    if msg_type in MESSAGE_HANDLERS:
+        MESSAGE_HANDLERS[msg_type](data[1:])
 
 
 def run(com_port):
     print("Connecting to", com_port)
-    s = serial.Serial(com_port, baudrate=115200)
-    if s.is_open:
-        print("Successfully connected. Reading...")
-    s.write([1]) #write 1 byte to start uart tx
+    sniffer = Sniffer(com_port)
+    sniffer.enable()
     while True:
-        len_byte = s.read(size=1)[0]
-        data = s.read(size=len_byte)
-        process_packet(data)
+        data = sniffer.read_packet()
+        process_message(data)

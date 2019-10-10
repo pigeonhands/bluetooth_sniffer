@@ -38,6 +38,7 @@ def get_adv_section(adv_data, section):
     while i < len(adv_data):
         seg_len = adv_data[i]
         seg_type = adv_data[i+1]
+        print(seg_len,seg_type)
         if seg_type == section:
             return adv_data[i+2:i+2+seg_len]
         i += seg_len
@@ -48,15 +49,17 @@ class PduAdvIndirected:
     def __init__(self, _data):
         self.data = _data
         self.address = self.data[:6]
-        self.adv_data = self.data[7:]
+        self.adv_data = self.data[6:]
+       
+        self.rssi = 0
         self.name = ""
 
-        adv_name_seg = get_adv_section(self.adv_data, BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME)
-        if adv_name_seg is not None:
-            self.name = str(adv_name_seg[2:], encoding='utf8')
+        #adv_name_seg = get_adv_section(self.adv_data[2:], BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME)
+        #if adv_name_seg is not None:
+        #    self.name = str(adv_name_seg[2:], encoding='utf8')
 
-    def get_name_hex(self):
+    def addr_hex(self):
         return "".join(format(x, 'x') for x in self.address)
     def __repr__(self):
-        return "<adv ind> {} ({})".format(self.name, self.get_name_hex())
+        return "<adv ind> ({}) {} {}".format( self.addr_hex(), self.rssi, self.name)
 

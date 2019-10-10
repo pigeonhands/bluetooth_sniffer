@@ -10,17 +10,10 @@
 
 void init_uart();
 
-void on_bt_packet(const ble_pdu_packet_t* packet, void *context) {
+void on_bt_packet(const bt_radio_message* packet, void *context) {
 	//pass to uart.
-	 PACKED_STRUCT {
-		 uint8_t type;
-		 uint8_t body[255];
-	}payload;
 	
-	payload.type = packet->header.type;
-	memcpy(payload.body, packet->body, packet->header.len);
-	
-	uart_write((uint8_t*)&payload, packet->header.len + 1);
+	uart_write((uint8_t *)packet, packet->len+sizeof(packet->len));
 	bt_radio_read_packet();
 }
 
