@@ -49,7 +49,7 @@
   <ItemGroup>
     <ClCompile Include="bt_radio.c" />
     <ClCompile Include="circle_buffer.c" />
-    <ClCompile Include="err_check.cpp" />
+    <ClCompile Include="err_check.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="uart.c" />
     <ClInclude Include="circle_bufer.h" />

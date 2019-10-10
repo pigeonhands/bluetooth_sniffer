@@ -818,9 +818,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="err_check.cpp">
-      <Filter>Source files\std</Filter>
-    </ClCompile>
     <ClCompile Include="bt_radio.c">
       <Filter>Source files\components</Filter>
     </ClCompile>
@@ -832,6 +829,9 @@
     </ClCompile>
     <ClCompile Include="uart.c">
       <Filter>Source files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="err_check.c">
+      <Filter>Source files\std</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
