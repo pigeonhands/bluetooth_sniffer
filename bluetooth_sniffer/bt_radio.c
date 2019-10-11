@@ -75,10 +75,10 @@ static uint8_t adv_channel_to_freq(adv_channels_e ch) {
 	switch (ch) {
 	case ADV_CHANNEL_1:
 		return 02;
-	case ADV_CHANNEL_2:
-		return 26;
 	case ADV_CHANNEL_3:
 		return 80;
+	case ADV_CHANNEL_2:
+		return 26;
 	}
 }
 
@@ -92,7 +92,7 @@ static void radio_configure() {
 	NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_Pos4dBm << RADIO_TXPOWER_TXPOWER_Pos);
 	NRF_RADIO->MODE = (RADIO_MODE_MODE_Ble_1Mbit << RADIO_MODE_MODE_Pos);
 	
-	set_radio_to_channel(ADV_CHANNEL_2);
+	set_radio_to_channel(ADV_CHANNEL_1);
 	
 	/*
 	 *	0x555555 is default for BLE adverts
@@ -115,13 +115,12 @@ static void radio_configure() {
 	 *	Essentualy the mac address to send/recieve on.
 	 **/
 	NRF_RADIO->PREFIX0	=	(0x8E89BED6 >> 24) & RADIO_PREFIX0_AP0_Msk;
-	NRF_RADIO->BASE0	=	(0x8E89BED6 << 8)  & RADIO_BASE0_BASE0_Msk;
-	
-	/*
+	NRF_RADIO->BASE0	=	(0x8E89BED6 << 8)  & RADIO_BASE0_BASE0_Msk;	/*
 	 *
 	 **/
 	NRF_RADIO->TXADDRESS	= 0; // transmit on logical address 0
     NRF_RADIO->RXADDRESSES	=	(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR0_Pos);
+							//	|(RADIO_RXADDRESSES_ADDR1_Enabled << RADIO_RXADDRESSES_ADDR1_Pos);
 	
 	/*
 	 * Structure of the BLE packet to look for
@@ -146,8 +145,9 @@ static void radio_configure() {
 		 (((RADIO_PCNF1_ENDIAN_Little) << RADIO_PCNF1_ENDIAN_Pos) & RADIO_PCNF1_ENDIAN_Msk) |	/* Endianess of the S0, LENGTH, S1 and PAYLOAD fields. */
 		 (((1UL) << RADIO_PCNF1_WHITEEN_Pos) & RADIO_PCNF1_WHITEEN_Msk)							/* Enable packet whitening */
 	 );
-	
-	
+
+	NRF_RADIO->MODECNF0     = (RADIO_MODECNF0_RU_Default << RADIO_MODECNF0_RU_Pos) |
+                              (RADIO_MODECNF0_DTX_B1 << RADIO_MODECNF0_DTX_Pos);
 	
 	
 }

@@ -36,6 +36,8 @@ import struct
 def get_adv_section(adv_data, section):
     i = 0
     while i < len(adv_data):
+        if (i+2) > len(adv_data):
+            return None
         seg_len = adv_data[i]
         seg_type = adv_data[i+1]
         if seg_type == section:
@@ -49,8 +51,6 @@ class PduAdvIndirected:
         self.data = _data
         self.address = self.data[:6]
         self.adv_data = self.data[6:]
-
-       
         self.rssi = 0
         self.name = ""
 

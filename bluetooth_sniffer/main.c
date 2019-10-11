@@ -29,8 +29,6 @@ int main() {
 		__WFE();
 		__SEV();
 		__WFE();
-		uint32_t state = NRF_RADIO->STATE;
-		uint32_t u = state;
 	}	
 }
 

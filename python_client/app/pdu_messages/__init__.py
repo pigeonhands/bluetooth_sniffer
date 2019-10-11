@@ -14,10 +14,11 @@ PDU_ADV_TYPE_AUX_SYNC_IND    = PDU_ADV_TYPE_EXT_IND
 PDU_ADV_TYPE_AUX_CHAIN_IND   = PDU_ADV_TYPE_EXT_IND
 PDU_ADV_TYPE_AUX_CONNECT_RSP = 0x08
 
-from app.pdu_messages import PduUnknown, PduAdvIndirect
+from app.pdu_messages import PduUnknown, PduAdvIndirect, PduAdvConnectInd
 
 PDU_TYPE_DICT = {
     PDU_ADV_TYPE_ADV_IND: PduAdvIndirect.PduAdvIndirected,
+    PDU_ADV_TYPE_CONNECT_IND: PduAdvConnectInd.PduAdvConnectInd
 }
 
 
