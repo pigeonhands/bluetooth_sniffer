@@ -114,10 +114,11 @@ static void radio_configure() {
 	 * 
 	 *	Essentualy the mac address to send/recieve on.
 	 **/
+	
 	NRF_RADIO->PREFIX0	=	(0x8E89BED6 >> 24) & RADIO_PREFIX0_AP0_Msk;
-	NRF_RADIO->BASE0	=	(0x8E89BED6 << 8)  & RADIO_BASE0_BASE0_Msk;	/*
-	 *
-	 **/
+	NRF_RADIO->BASE0	=	(0x8E89BED6 << 8)  & RADIO_BASE0_BASE0_Msk;	
+	
+	
 	NRF_RADIO->TXADDRESS	= 0; // transmit on logical address 0
     NRF_RADIO->RXADDRESSES	=	(RADIO_RXADDRESSES_ADDR0_Enabled << RADIO_RXADDRESSES_ADDR0_Pos);
 							//	|(RADIO_RXADDRESSES_ADDR1_Enabled << RADIO_RXADDRESSES_ADDR1_Pos);

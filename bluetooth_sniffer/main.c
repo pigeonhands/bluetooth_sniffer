@@ -12,7 +12,6 @@ void init_uart();
 
 void on_bt_packet(const bt_radio_message* packet, void *context) {
 	//pass to uart.
-	
 	uart_write((uint8_t *)packet, packet->len + sizeof(packet->len));
 	bt_radio_read_packet();
 }
