@@ -35,19 +35,20 @@ int main() {
 void init_uart() {
 	nrfx_uart_config_t config = NRFX_UART_DEFAULT_CONFIG;
 	//pins for nina-b1 dev kit
-	/*
+	
 	config.pseltxd = 6;
 	config.pselrts = 8;
 	config.pselcts = 18;
 	config.pselrxd = 5;
-	*/
-	//pins for nrf51 dev kit (rigato?)
 	
+	//pins for nrf51 dev kit (rigato?)
+	/*
 	config.pseltxd = 6;
 	config.pselrts = 5;
 	config.pselcts = 7;
 	config.pselrxd = 8;
 	config.pselrxd = 8;
+	*/
 	
 	uart_init(&config);
 }

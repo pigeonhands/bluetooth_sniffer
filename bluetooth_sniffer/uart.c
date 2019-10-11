@@ -56,3 +56,4 @@ void uart_write(uint8_t *data, uint16_t len) {
 	memcpy(tx_buffer, data, len);
 	nrfx_uart_tx(&uart, tx_buffer, len);
 }
+
