@@ -8,8 +8,9 @@ MESSAGE_HANDLERS = {
 
 def process_message(data):
     msg_type = data[0]
+    data = bytes(data[1:])
     if msg_type in MESSAGE_HANDLERS:
-        MESSAGE_HANDLERS[msg_type](data[1:])
+        MESSAGE_HANDLERS[msg_type](data)
 
 
 def run(com_port):

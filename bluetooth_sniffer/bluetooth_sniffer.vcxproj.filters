@@ -836,6 +836,9 @@
     <ClCompile Include="err_check.c">
       <Filter>Source files\std</Filter>
     </ClCompile>
+    <ClCompile Include="timer.c">
+      <Filter>Source files\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="uart.h">
@@ -855,6 +858,9 @@
     </ClInclude>
     <ClInclude Include="message_type.h">
       <Filter>Header files\components\coms</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Header files\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

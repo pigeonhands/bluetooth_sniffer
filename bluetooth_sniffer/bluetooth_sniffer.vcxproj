@@ -51,11 +51,13 @@
     <ClCompile Include="circle_buffer.c" />
     <ClCompile Include="err_check.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="timer.c" />
     <ClCompile Include="uart.c" />
     <ClInclude Include="circle_bufer.h" />
     <ClInclude Include="error_check.h" />
     <ClInclude Include="message_type.h" />
     <ClInclude Include="pdu.h" />
+    <ClInclude Include="timer.h" />
     <ClInclude Include="uart.h" />
     <None Include="nrf5x.props" />
     <ClCompile Include="$(BSP_ROOT)\nRF5x\integration\nrfx\legacy\nrf_drv_power.c" />

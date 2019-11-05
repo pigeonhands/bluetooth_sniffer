@@ -2,18 +2,23 @@
 #include "nrf.h"
 #include "uart.h"
 #include <string.h>
-
+#include "timer.h"
 
 /*	Refrences 
  *	https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52840PSv10.pdf
  *	https://cdn.sparkfun.com/datasheets/Wireless/Bluetooth/nRF52832_PS_v1.0.pdf
  *	https://github.com/bluekitchen/raccoon
  **/
-static struct {
-	bt_radio_message msg;
-	void *context;
-	bt_radio_on_pdu_packet_f on_packet;
-}ctx; 
+
+#define BT_RADIO_STATE_DISABLED 0
+#define BT_RADIO_STATE_RXRU 1
+#define BT_RADIO_STATE_RXIDLE 1
+#define BT_RADIO_STATE_RX 3
+#define BT_RADIO_STATE_RXDISABLE 4
+#define BT_RADIO_STATE_TXRU 9
+#define BT_RADIO_STATE_TXIDLE 10
+#define BT_RADIO_STATE_TX 11
+#define BT_RADIO_STATE_TXDISABLE 12
 
 typedef enum {
 	ADV_CHANNEL_1 = 37,
@@ -21,18 +26,40 @@ typedef enum {
 	ADV_CHANNEL_3 = 39,
 }adv_channels_e;
 
+static struct {
+	bt_radio_message msg;
+	void *context;
+	bt_radio_on_pdu_packet_f on_packet;
+	uint16_t channel_switch_index;
+	adv_channels_e current_channel;
+}ctx; 
+
+
+
+
+#define BT_RADIO_CHANNEL_SWITCH_COUNT 3
+static adv_channels_e channel_switch[BT_RADIO_CHANNEL_SWITCH_COUNT] = { 
+	ADV_CHANNEL_1,
+	ADV_CHANNEL_2,
+	ADV_CHANNEL_3
+};
+
 void bt_radio_on_packet(bt_radio_on_pdu_packet_f cb, void *context) {
 	ctx.context = context;
 	ctx.on_packet = cb;
 }
 
-static void disable_radio() {
-	if (NRF_RADIO->STATE > 0) {
+static uint32_t disable_radio() {
+	uint32_t radio_state = NRF_RADIO->STATE;
+	
+	if (radio_state) {
 		NRF_RADIO->EVENTS_DISABLED = 0;
 		NRF_RADIO->TASKS_DISABLE = 1;
 		while (NRF_RADIO->EVENTS_DISABLED) {
 		}
-	}
+	} 
+	
+	return radio_state;
 }
 
 static void radio_clock_init() {
@@ -49,7 +76,8 @@ static void radio_clock_init() {
 void bt_radio_read_packet() {
 	NRF_RADIO->PACKETPTR = (uint32_t)&ctx.msg.pdu;
 	
-	if (NRF_RADIO->STATE == 0) {NRF_RADIO->EVENTS_READY = 0;
+	if (NRF_RADIO->STATE == 0) {
+		NRF_RADIO->EVENTS_READY = 0;
 		NRF_RADIO->EVENTS_END = 0;
 		NRF_RADIO->TASKS_RXEN = 1U;
 	} else {
@@ -92,7 +120,8 @@ static void radio_configure() {
 	NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_Pos4dBm << RADIO_TXPOWER_TXPOWER_Pos);
 	NRF_RADIO->MODE = (RADIO_MODE_MODE_Ble_1Mbit << RADIO_MODE_MODE_Pos);
 	
-	set_radio_to_channel(ADV_CHANNEL_1);
+	ctx.current_channel = ADV_CHANNEL_2;
+	set_radio_to_channel(ctx.current_channel);
 	
 	/*
 	 *	0x555555 is default for BLE adverts
@@ -115,6 +144,7 @@ static void radio_configure() {
 	 *	Essentualy the mac address to send/recieve on.
 	 **/
 	
+
 	NRF_RADIO->PREFIX0	=	(0x8E89BED6 >> 24) & RADIO_PREFIX0_AP0_Msk;
 	NRF_RADIO->BASE0	=	(0x8E89BED6 << 8)  & RADIO_BASE0_BASE0_Msk;	
 	
@@ -164,14 +194,25 @@ static void radio_configure_irq() {
 	NVIC_EnableIRQ(RADIO_IRQn);
 }
 
+static void bt_radio_timer_tick() {
+	ctx.channel_switch_index = (ctx.channel_switch_index + 1) % BT_RADIO_CHANNEL_SWITCH_COUNT;
+	
+	uint32_t previous_state = disable_radio();
+	ctx.current_channel = channel_switch[ctx.channel_switch_index];
+	set_radio_to_channel(ctx.current_channel);
+	if (previous_state == BT_RADIO_STATE_RX) {
+		bt_radio_read_packet();
+	}
+}
 
 void bt_radio_init() {
 	memset(&ctx, 0, sizeof(ctx));
 	radio_clock_init();
-	
 	radio_configure();
-	
 	radio_configure_irq();
+	
+	timer_init(bt_radio_timer_tick);
+	timer_start(3);
 }
 
 #ifdef __cplusplus
@@ -190,6 +231,7 @@ void RADIO_IRQHandler(void) {
 		ctx.msg.len = ctx.msg.pdu.header.len + sizeof(ctx.msg.pdu.header) + sizeof(ctx.msg.header);
 		ctx.msg.header.message_type = MESSAGE_TYPE_RADIO;
 		ctx.msg.header.rssi = NRF_RADIO->RSSISAMPLE;
+		ctx.msg.header.channel = ctx.current_channel;
 		
 		uint8_t crc_ok = (NRF_RADIO->CRCSTATUS & RADIO_CRCSTATUS_CRCSTATUS_Msk) ==
                  (RADIO_CRCSTATUS_CRCSTATUS_CRCOk << RADIO_CRCSTATUS_CRCSTATUS_Pos);

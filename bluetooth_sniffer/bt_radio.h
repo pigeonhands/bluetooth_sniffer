@@ -10,6 +10,7 @@ typedef struct {
 		uint8_t message_type;
 		uint8_t rssi;
 		uint8_t crc_ok;
+		uint16_t channel;
 	}header;
 	
 	ble_pdu_packet_t pdu;
@@ -22,3 +23,4 @@ typedef void(*bt_radio_on_pdu_packet_f)(const bt_radio_message* packet, void*con
 void bt_radio_init();
 void bt_radio_on_packet(bt_radio_on_pdu_packet_f cb, void *context);
 void bt_radio_read_packet();
+

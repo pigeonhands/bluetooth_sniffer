@@ -47,7 +47,6 @@ void init_uart() {
 	config.pselrts = 5;
 	config.pselcts = 7;
 	config.pselrxd = 8;
-	config.pselrxd = 8;
 	*/
 	
 	uart_init(&config);
