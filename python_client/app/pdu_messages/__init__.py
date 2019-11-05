@@ -14,17 +14,21 @@ PDU_ADV_TYPE_AUX_SYNC_IND    = PDU_ADV_TYPE_EXT_IND
 PDU_ADV_TYPE_AUX_CHAIN_IND   = PDU_ADV_TYPE_EXT_IND
 PDU_ADV_TYPE_AUX_CONNECT_RSP = 0x08
 
-from app.pdu_messages import PduUnknown, PduAdvIndirect, PduAdvConnectInd
+from app.pdu_messages import PduUnknown, PduAdvIndirect, PduAdvConnectInd, PduAdvScanReponse, PduAdvNonConn,PduScanRequest
 
 PDU_TYPE_DICT = {
     PDU_ADV_TYPE_ADV_IND: PduAdvIndirect.PduAdvIndirected,
-    PDU_ADV_TYPE_CONNECT_IND: PduAdvConnectInd.PduAdvConnectInd
+    PDU_ADV_TYPE_SCAN_RSP: PduAdvScanReponse.PduAdvScanReponse,
+    PDU_ADV_TYPE_CONNECT_IND: PduAdvConnectInd.PduAdvConnectInd,
+    PDU_ADV_TYPE_NONCONN_IND: PduAdvNonConn.PduAdvNonConn,
+    PDU_ADV_TYPE_SCAN_REQ: PduScanRequest.PduScanRequest,
+
 }
 
 
 def get_message(data):
     pdu_header = data[0]
-    pdu_type = (pdu_header >> 12) & 0x0F
+    pdu_type = (pdu_header) & 0x0F
     if pdu_type in PDU_TYPE_DICT:
         return PDU_TYPE_DICT[pdu_type](data[2:])
     else:

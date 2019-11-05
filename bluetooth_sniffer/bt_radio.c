@@ -85,20 +85,6 @@ void bt_radio_read_packet() {
 	}
 }
 
-static uint8_t channel_to_freq(int channel) {
-	if (channel == 37) {
-		return 2;
-	} else if (channel == 38) {
-		return 26;
-	} else if (channel == 39) {
-		return 80;
-	} else if (channel < 11) {
-		return 2*(channel + 2);
-	} else {
-		return 2*(channel + 3);
-	}
-}
-
 static uint8_t adv_channel_to_freq(adv_channels_e ch) {
 	switch (ch) {
 	case ADV_CHANNEL_1:
@@ -107,6 +93,14 @@ static uint8_t adv_channel_to_freq(adv_channels_e ch) {
 		return 80;
 	case ADV_CHANNEL_2:
 		return 26;
+	default: {
+		uint8_t ch_8 = (uint8_t)ch;
+		if (ch_8 < 11) {
+			return 2*(ch_8 + 2);
+		} else {
+			return 2*(ch_8 + 3);
+		}
+	}
 	}
 }
 
@@ -212,7 +206,7 @@ void bt_radio_init() {
 	radio_configure_irq();
 	
 	timer_init(bt_radio_timer_tick);
-	timer_start(3);
+	timer_start(33);
 }
 
 #ifdef __cplusplus

@@ -1,11 +1,12 @@
 #include  "timer.h"
 
-#define TIMER_Reg NRF_TIMER4
-#define TIMER_Irq TIMER4_IRQHandler
+#define TIMER_Reg NRF_TIMER1
+#define TIMER_Irq TIMER1_IRQHandler
 
 #define TIMER_COMPARE_READY(REG, CMPINDEX) ((REG->EVENTS_COMPARE[CMPINDEX] != 0) && ((REG->INTENSET & TIMER_INTENSET_COMPARE ## CMPINDEX ## _Msk) != 0))
 #define TIMER_COMPARE_CLEAR(REG, CMPINDEX) REG->EVENTS_COMPARE[CMPINDEX] = 0
 
+#define TIMER_PRESCALER 9
 
 static struct {
 	timer_on_tick_f cb;
@@ -14,10 +15,11 @@ static struct {
 void timer_init(timer_on_tick_f cb) {
 	TIMER_Reg->MODE			= TIMER_MODE_MODE_Timer;
 	TIMER_Reg->BITMODE		= TIMER_BITMODE_BITMODE_32Bit;
-	TIMER_Reg->PRESCALER	= 4;
+	TIMER_Reg->PRESCALER	= TIMER_PRESCALER;
+	TIMER_Reg->SHORTS		= TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos;
 	
 	TIMER_Reg->INTENSET		= (TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos);
-	NVIC_EnableIRQ(TIMER4_IRQn);
+	NVIC_EnableIRQ(TIMER1_IRQn);
 	
 	ctx.cb = cb;
 }
@@ -32,8 +34,8 @@ __STATIC_INLINE uint32_t timer_ms_to_ticks(uint32_t              time_ms,
 	return (uint32_t)ticks;
 }
 
-void timer_start(uint16_t timeout_s) {
-	TIMER_Reg->CC[0] = timeout_s;//timer_ms_to_ticks(timeout_s * 1000, 4);  //timeout_s*65000;
+void timer_start(uint16_t timeout_ms) {
+	TIMER_Reg->CC[0] = timer_ms_to_ticks(timeout_ms, TIMER_PRESCALER);
 	TIMER_Reg->TASKS_CLEAR = 1; 
 	TIMER_Reg->TASKS_START = 1;
 }

@@ -13,4 +13,4 @@ def handle(data):
         return
     msg = app.pdu_messages.get_message(data[HEADER_SIZE:])
     setattr(msg,'rssi',rssi)
-    print(crc_ok, channel, msg)
+    print(crc_ok, channel, rssi, msg)

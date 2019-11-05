@@ -5,6 +5,7 @@ class PduAdvConnectInd:
     def __init__(self, _data):
         self.data = _data
         self.rssi = 0
+        self.packet_type = "conn ind"
         (self.initor_addr,      #6
         self.advertiser_addr,   #6
         self.le_connect_addr,   #4
@@ -22,7 +23,8 @@ class PduAdvConnectInd:
         return ":".join('%02x'%x for x in addr[::-1])
     
     def __repr__(self):
-        return "<conn ind> ({}) -> ({}) {}".format(
+        return "{:<15}({}) -> ({}) {}".format(
+            self.packet_type,
             self.addr_hex(self.initor_addr),
             self.addr_hex(self.advertiser_addr),
             self.rssi)

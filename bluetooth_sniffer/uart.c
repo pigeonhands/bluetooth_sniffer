@@ -32,7 +32,7 @@ static void _event_handler(nrfx_uart_event_t const * p_event, void * p_context) 
 		}break;
 	case NRFX_UART_EVT_RX_DONE: {
 			NRF_LOG_INFO("Uart recieved %i bytes.", p_event->data.rxtx.bytes);
-				tx_enabled = true;
+			tx_enabled = true;
 			//flush_messages();
 		}break;
 	case NRFX_UART_EVT_ERROR: {
@@ -70,7 +70,7 @@ static void flush_messages() {
 }
 
 void uart_write(uint8_t *data, uint16_t len) {
-	if (tx_in_progress || (queue_write_index >= QUEUE_AMMOUNT)) {
+	if (!tx_enabled || tx_in_progress || (queue_write_index >= QUEUE_AMMOUNT)) {
 		return;
 	}
 	queue_item* q = &queue[queue_write_index++];
