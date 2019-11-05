@@ -10,7 +10,7 @@ def handle(data):
     rssi = -data[0]
     crc_ok = data[1]
     if crc_ok == 0:
+        #print("crc failed message type",(data[HEADER_SIZE]) & 0x0F)
         return
     msg = app.pdu_messages.get_message(data[HEADER_SIZE:])
-    setattr(msg,'rssi',rssi)
     print(crc_ok, channel, rssi, msg)

@@ -23,8 +23,8 @@ class PduAdvConnectInd:
         return ":".join('%02x'%x for x in addr[::-1])
     
     def __repr__(self):
-        return "{:<15}({}) -> ({}) {}".format(
+        return "{:<15}({}) -> ({})".format(
             self.packet_type,
             self.addr_hex(self.initor_addr),
-            self.addr_hex(self.advertiser_addr),
-            self.rssi)
+            self.addr_hex(self.advertiser_addr)
+            )

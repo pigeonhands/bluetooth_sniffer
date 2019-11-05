@@ -5,7 +5,6 @@ class PduAdvType:
         self.data = _data
         self.address = self.data[:6]
         self.adv_data = self.data[6:]
-        self.rssi = 0
         self.name = ""
         if not hasattr(self, 'packet_type'):
             self.packet_type = "adv_unknown"

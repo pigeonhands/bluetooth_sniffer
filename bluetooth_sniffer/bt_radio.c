@@ -5,10 +5,14 @@
 #include "timer.h"
 
 /*	Refrences 
+ *	
+ *	http://dev.ti.com/tirex/content/simplelink_academy_cc13x2sdk_2_10_02_10/modules/ble5stack/ble_scan_adv_basic/ble_scan_adv_basic.html
+ *
  *	https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52840PSv10.pdf
  *	https://cdn.sparkfun.com/datasheets/Wireless/Bluetooth/nRF52832_PS_v1.0.pdf
  *	https://github.com/bluekitchen/raccoon
  **/
+
 
 #define BT_RADIO_STATE_DISABLED 0
 #define BT_RADIO_STATE_RXRU 1
@@ -31,11 +35,17 @@ static struct {
 	void *context;
 	bt_radio_on_pdu_packet_f on_packet;
 	uint16_t channel_switch_index;
-	adv_channels_e current_channel;
+	uint16_t current_channel;
 }ctx; 
 
 
 
+#define BT_RADIO_CHANNEL_HOP_USE_RANGE 0
+
+#if BT_RADIO_CHANNEL_HOP_USE_RANGE
+#define BT_RADIO_CHANNEL_SWITCH_MIN 35
+#define BT_RADIO_CHANNEL_SWITCH_MAX 39
+#else
 
 #define BT_RADIO_CHANNEL_SWITCH_COUNT 3
 static adv_channels_e channel_switch[BT_RADIO_CHANNEL_SWITCH_COUNT] = { 
@@ -43,6 +53,8 @@ static adv_channels_e channel_switch[BT_RADIO_CHANNEL_SWITCH_COUNT] = {
 	ADV_CHANNEL_2,
 	ADV_CHANNEL_3
 };
+#endif
+
 
 void bt_radio_on_packet(bt_radio_on_pdu_packet_f cb, void *context) {
 	ctx.context = context;
@@ -76,7 +88,7 @@ static void radio_clock_init() {
 void bt_radio_read_packet() {
 	NRF_RADIO->PACKETPTR = (uint32_t)&ctx.msg.pdu;
 	
-	if (NRF_RADIO->STATE == 0) {
+	if (NRF_RADIO->STATE == BT_RADIO_STATE_DISABLED) {
 		NRF_RADIO->EVENTS_READY = 0;
 		NRF_RADIO->EVENTS_END = 0;
 		NRF_RADIO->TASKS_RXEN = 1U;
@@ -189,11 +201,21 @@ static void radio_configure_irq() {
 }
 
 static void bt_radio_timer_tick() {
-	ctx.channel_switch_index = (ctx.channel_switch_index + 1) % BT_RADIO_CHANNEL_SWITCH_COUNT;
-	
+
 	uint32_t previous_state = disable_radio();
+	
+#if BT_RADIO_CHANNEL_HOP_USE_RANGE
+	ctx.current_channel++;
+	if (ctx.current_channel > BT_RADIO_CHANNEL_SWITCH_MAX) {
+		ctx.current_channel = BT_RADIO_CHANNEL_SWITCH_MIN;
+	}
+	set_radio_to_channel(ctx.current_channel);
+#else
+	ctx.channel_switch_index = (ctx.channel_switch_index + 1) % BT_RADIO_CHANNEL_SWITCH_COUNT;
 	ctx.current_channel = channel_switch[ctx.channel_switch_index];
 	set_radio_to_channel(ctx.current_channel);
+#endif
+
 	if (previous_state == BT_RADIO_STATE_RX) {
 		bt_radio_read_packet();
 	}
@@ -206,7 +228,7 @@ void bt_radio_init() {
 	radio_configure_irq();
 	
 	timer_init(bt_radio_timer_tick);
-	timer_start(33);
+	timer_start(10);
 }
 
 #ifdef __cplusplus
